@@ -159,8 +159,6 @@ exports.getAllReservations = getAllReservations;
   ORDER BY cost_per_night
   LIMIT $${queryParams.length};`;
  
-   // 5
-  //console.log(queryString, queryParams);
   return pool.query(queryString, queryParams).then((res) =>{
     return res.rows;
   });
@@ -175,9 +173,24 @@ exports.getAllProperties = getAllProperties;
  * @return {Promise<{}>} A promise to the property.
  */
 const addProperty = function(property) {
-  const propertyId = Object.keys(properties).length + 1;
-  property.id = propertyId;
-  properties[propertyId] = property;
-  return Promise.resolve(property);
+//   INSERT INTO properties(owner_id, title, description, cover_photo_url, thumbnail_photo_url, cost_per_night, parking_spaces, number_of_bathrooms, number_of_bedrooms, active, province, city, country, street, post_code) 
+// VALUES(1,'Blank corner','description','https://images.pexels.com/photos/2121121/pexels-photo-2121121.jpeg?auto=compress&cs=tinysrgb&h=350','https://images.pexels.com/photos/2121121/pexels-photo-2121121.jpeg',85234,6,6,7,true,'Canada','651 Nami Road','Bohbatev','Alberta',83680);
+//console.log(property);  
+return pool
+  .query(`INSERT INTO properties(owner_id, title, description, thumbnail_photo_url,cover_photo_url, cost_per_night, parking_spaces, number_of_bathrooms, number_of_bedrooms,street, city, province,country,  post_code) 
+  VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING id;`, [property.owner_id, property.title, property.description,property.thumbnail_photo_url, property.cover_photo_url,  property.cost_per_night, property.parking_spaces, property.number_of_bathrooms, property.number_of_bedrooms,
+    property.street, property.city, property.province, property.country, property.post_code])
+  .then((result) => {  
+    property =  result.rows;
+    console.log(property[0]); 
+    return pool.query(`select * from properties where id = $1;`,[property[0].id])
+  })
+  .then((result)=>{
+    property = result.rows;
+    return property[0];
+  })
+  .catch((err) => {
+    return err;
+  });
 }
 exports.addProperty = addProperty;
